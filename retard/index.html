@@ -1,0 +1,123 @@
+
+<html>
+<style>
+body {
+font-family: "Helvetica";
+}
+
+code {
+background-color: lightgray;
+}
+</style>
+<body>
+
+<h1>SETTING UP POMF FOR RETARDS</h1>
+
+<p>You're probably reading this because you're too dense to google "lamp stack setup" and read the Readme.md in the git repo.
+The readme sucks ass though, so if that's the reason i don't *really* blame you. For the sake of simplicity I'm going to be using Apache and Ubuntu 16.04.
+If you want an Nginx guide, go fuck yourself.
+
+Things in code text with gray backgrounds are code you're supposed to enter in your command line.
+<p>
+
+<h2>PREREQUISITES</h2>
+<p>A LAMP stack (Linux, Apache, MySQL, and PHP)</p>
+<p>Node.js/NPM</p>
+
+<h2>GETTING THE PREREQUISITES</h2>
+<h3>LAMP Stack</h3>
+<ol>
+<li>Get a VPS/machine with Ubuntu 16.04 server version. I don't care what distro you use, but for the sake of this, I'm using Ubuntu.</li>
+<li>Log into your server you stupid sack of shit.</li>
+<li><code>apt-get update</code> Make sure you're up to date.</li>
+<li><code>apt-get install apache2</code> holy shit you've got a web server now!</li>
+<li><code>apt-get install mysql-server</code> Time to get MySQL. Ignore people who say "pomf should be database-less" or "SQLite pls".</li>
+<li>Follow the instructions on the fucking screen for setting up MySQL.</li>
+<li><code>mysql_secure_installation</code> SECURE YOUR DB. or something. basically just say n to the first two, and y to the rest.</li>
+<li><code>apt-get install php libapache2-mod-php php-mcrypt php-mysql</code> Time to get PHP.</li>
+<li><code>service apache2 restart</code> for good measure.</li>
+</ol>
+
+<p>Congratulations! Your LAMP stack is now set up. All files that will be served to the web can be found in /var/www/html/.</p>
+
+<h3>Node.js/NPM</h3>
+<ol>
+<li> <code>apt-get install nodejs nodejs-legacy npm</code> Congratulations. You now have a fuckton of space taken up by this for "compressing" pomf, and saving about 1.5~ KB.</li>
+<li>Ask yourself, "is it really worth it"</li>
+</ol>
+
+<h2>GETTING POMF'D</h2>
+
+<p>Make sure you have git. Ubuntu comes with it. I don't know if your meme distro does.</p>
+<ol>
+<li><code>cd /var/www/html</code> Navigating to your shitty web folder </li>
+<li><code>rm index.html</code> get apache's shitty index out of here</li>
+<li><code>git clone https://github.com/pomf/pomf</code></li>
+<li><code>rm -r expiry/</code> <code>rm -r moe/</code> Get the stupid submodules out. they don't even work. expiry doesn't even have any files.</li>
+</ol>
+
+<p>Now is the part where I would recommend getting an FTP client. Editing all of pomf's shit via [insert favorite text editor here] is a pain.</p>
+<p>I recommend WinSCP: <a href="https://winscp.net/eng/download.php" target="_blank">https://winscp.net/eng/download.php</a></p>
+
+<h2>EDITING YOUR POMF/MySQL/APACHE</h2>
+
+<p>This is probably the hardest part for your 12 chromosomes to get. So hold on to your safety vest. I'll be saying "open x" because by now you
+should be using an FTP client to edit things.</p>
+
+<ol>
+<li>Open dist.json inside /var/www/html/pomf/.</li>
+<li>CHANGE THE FOLLOWING:</li>
+If you don't want the "Malware scans are daily etc etc" banner, remove "banners/malware_scans.swig", . REMOVE THE , TOO.<br>
+Change max_upload_size to whatever you want it to be, with the file size in MB (that's BYTES, not bits.)<br>
+Change Sitename to whatever your shitty pomf clone is called.<br>
+Change siteUrl to the FULL URL of your clone. i.e. https://catbox.moe/<br>
+Make abuseContact and infoContact the same email address that you use.<br>
+If you feel like begging for donations, you can add your urls in the right spot.<br>
+
+<li><code>mysql -p</code>. Log in with the password you made when you installed MySQL.</li>
+<li><code>CREATE DATABASE pomf;</code></li>
+<li><code>quit</code></li>
+<li><code>mysql -p pomf < /var/www/html/pomf/mysql_schema.sql</code></li>
+
+<li>Create a new file in /etc/apache2/sites-available/ named whatever you fucking want. Normal people use their url but i don't care.</li>
+<li>Put all of this inside it exactly. Replace [[ ]] with your shit.</li>
+<p>&lt;VirtualHost *:80&gt;</p>
+	<p>ServerName [[your domain]]</p>
+
+	<p>ServerAdmin [[your email]]</p>
+	<p>DocumentRoot /var/www/html</p>
+
+	<p>#REMOVE THESE TWO LINES IF YOU WANT NO LOGGING.</p>
+	<p>ErrorLog ${APACHE_LOG_DIR}/error.log</p>
+	<p>CustomLog ${APACHE_LOG_DIR}/access.log combined</p>
+
+	<p>&lt;Directory "/var/www/html/files"&gt;</p>
+	<p>	php_flag engine off</p>
+	<p>&lt;/Directory&gt;</p>
+
+<p>&lt;/VirtualHost></p>
+<li><code>a2ensite filename.conf</code></li>
+<li><code>service apache2 reload</code> Did you get an error? That means you fucked something up. Give up.</li>
+<li>Open php.ini inside /etc/php/7.0/apache2/</li>
+<li>Find and change upload_max_filesize and post_max_size to what you specified in dist.json. If you get confused, read the php docs.</li>
+<li>Open settings.inc.php inside /var/www/html/pomf/static/php/includes/</li>
+<li>Change the following to the correct details:</li>
+define('POMF_DB_USER', 'root');<br>
+define('POMF_DB_PASS', '');<br>
+define('POMF_FILES_ROOT', '/var/www/html/files/');<br>
+define('POMF_URL', '');<br>
+
+
+<li><code>cd /var/www/html/pomf</code></li>
+<li><code>make</code></li>
+<li><code>make install DESTDIR=/var/www/html</code></li>
+<li><code>mkdir /var/www/html/files</code></li>
+<li><code>chown -R www-data:www-data /var/www/html</code></li>
+
+<h2>Congratulations! you now have your own pomf.</h2>
+<p>For the sake of keeping this guide as short as possible, I won't go over basic shit like changing your DNS records at your registrar, or how to add any extra shit to pomf. <i>It's a learning experience.</i></p>
+<p><b><u>BE AWARE THAT YOUR POMF IS NOT SECURE.</u></b> See the answer to <a href="http://stackoverflow.com/questions/1271899/disable-php-in-directory-including-all-sub-directories-with-htaccess" target="_blank">this</a> Stack Overflow question to disable PHP Execution in your files folder.</p>
+<p>You may want to also remove the git repo you downloaded. It's just <code>rm -r /var/www/html/pomf/</code></p>
+<p>If you <i>still</i> didn't get it working, you should probably give up trying to host a public file hosting service.</p>
+
+[i did not make this all credit goes to <a href="https://catbox.moe">catbox.moe</a>]

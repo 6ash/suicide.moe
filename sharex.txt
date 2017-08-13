@@ -1,0 +1,14 @@
+{
+"Name": "suicide.moe",
+"RequestType": "POST",
+"RequestURL": "https://suicide.moe/upload.php",
+"FileFormName": "files[]",
+"Arguments": { },
+"ResponseType": "Text",
+"RegexList": [
+"\"url\":\"(?:.+\\\\/)?(.*?)\""
+],
+"URL": "https://x.suicide.moe/$1,1$",
+"ThumbnailURL": "",
+"DeletionURL": ""
+}
